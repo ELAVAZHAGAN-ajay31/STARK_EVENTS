@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARK EVENTS - Heavy Armature Tactical HUD</title>
+    <style>
+        :root {
+            /* METALLIC ALLOY PALETTE */
+            --stark-crimson-plate: linear-gradient(135deg, #c41220 0%, #7d000a 35%, #e62232 50%, #3b0004 80%, #610007 100%);
+            --stark-gold-metallic: linear-gradient(135deg, #fff5b8 0%, #ffd700 20%, #b88600 45%, #fff2a3 60%, #664a00 85%, #997300 100%);
+            --titanium-steel: linear-gradient(135deg, #8a99ad 0%, #434c5e 25%, #2e3440 50%, #6c7a96 75%, #1e222a 100%);
+            --dark-chassis: linear-gradient(180deg, #121620 0%, #080a0f 100%);
+            
+            --stark-gold: #ffd700;
+            --stark-gold-dark: #8a6d1c;
+            --arc-cyan: #00f0ff;
+            --arc-cyan-glow: rgba(0, 240, 255, 0.6);
+            --bg-dark: #040608;
+            --bg-card: rgba(12, 16, 24, 0.92);
+            --text-light: #f0f4f8;
+            --text-muted: #8a99ad;
+            --border-tech: rgba(0, 240, 255, 0.3);
+            --border-gold: rgba(255, 215, 0, 0.5);
+            --danger: #ff3344;
+            --success: #00ff88;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(196, 18, 32, 0.4) 0%, transparent 65%),
+                radial-gradient(circle at 80% 30%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 8px),
+                linear-gradient(180deg, #06080c 0%, #020305 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* HEAVY METALLIC ARMATURE HEADER */
+        header {
+            background: #090c12;
+            border-bottom: 3px solid #b88600;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 215, 0, 0.25);
+            padding: 0.8rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        /* MECHANICAL ARMATURE CHASSIS CONTAINER */
+        .brand-armature {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            position: relative;
+            padding: 0.6rem 1.8rem 0.6rem 1rem;
+            background: var(--dark-chassis);
+            border: 2px solid var(--stark-gold-dark);
+            clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+            box-shadow: 
+                inset 0 0 15px rgba(0, 0, 0, 0.9),
+                inset 0 1px 2px rgba(255, 255, 255, 0.4),
+                0 0 15px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Metallic Frame Outline Bevels */
+        .brand-armature::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--stark-gold-metallic);
+            box-shadow: 0 0 10px var(--stark-gold);
+        }
+
+        /* INDUSTRIAL RIVETS / MECHANICAL BOLTS */
+        .armature-rivet {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--titanium-steel);
+            border-radius: 50%;
+            border: 1px solid #111;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 1px 2px #000;
+        }
+        .rivet-tl { top: 4px; left: 4px; }
+        .rivet-tr { top: 4px; right: 18px; }
+        .rivet-bl { bottom: 4px; left: 18px; }
+        .rivet-br { bottom: 4px; right: 4px; }
+
+        /* MULTI-LAYERED METALLIC ARMATURE SHIELD */
+        .armature-shield-outer {
+            width: 64px;
+            height: 64px;
+            background: var(--stark-gold-metallic);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            flex-shrink: 0;
+            padding: 3px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8));
+        }
+
+        /* Crimson Titanium Armor Layer */
+        .armature-shield-crimson {
+            width: 100%;
+            height: 100%;
+            background: var(--stark-crimson-plate);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        /* Inner Metallic Housing */
+        .shield-plate-inner {
+            width: 100%;
+            height: 100%;
+            background: #060910;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid var(--stark-gold-dark);
+        }
+
+        /* ARC REACTOR CORE */
+        .arc-reactor {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--arc-cyan);
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.4) 0%, rgba(0, 0, 0, 0.9) 80%);
+            box-shadow: 0 0 12px var(--arc-cyan), inset 0 0 10px var(--arc-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .arc-reactor::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--arc-cyan), 0 0 6px #ffffff;
+            animation: reactor-glow 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes reactor-glow {
+            0% { transform: scale(0.9); box-shadow: 0 0 10px var(--arc-cyan), 0 0 4px #fff; }
+            100% { transform: scale(1.1); box-shadow: 0 0 20px var(--arc-cyan), 0 0 8px #fff; }
+        }
+
+        /* ARMATURE TYPOGRAPHY & CHASSIS LABELS */
+        .brand-text h1 {
+            font-size: 1.5rem;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* HIGH-VISIBILITY METALLIC TEXT */
+.brand-text h1 .gold-text {
+    background: var(--stark-gold-metallic);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* Dual shadow: Black outline for edge separation + Gold outer glow */
+    filter: 
+        drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.95)) 
+        drop-shadow(0px 0px 8px rgba(255, 215, 0, 0.4));
+        
+    font-weight: 900;
+    letter-spacing: 3px;
+}
+
+        .hud-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.65rem;
+            color: var(--stark-gold);
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-top: 3px;
+            text-shadow: 0 1px 2px #000;
+        }
+
+        .hud-tag-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Navigation Tabs with Golden Bevel Edge */
+        .nav-tabs {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: linear-gradient(180deg, rgba(20, 24, 35, 0.9) 0%, rgba(8, 10, 15, 0.9) 100%);
+            border: 1px solid var(--stark-gold-dark);
+            color: var(--text-light);
+            padding: 0.6rem 1.2rem;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--stark-gold);
+            color: var(--stark-gold);
+            box-shadow: 0 0 15px rgba(255, 200, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .tab-btn.active {
+            background: var(--stark-gold-metallic);
+            color: #05070a;
+            border-color: var(--stark-gold-light);
+            font-weight: 900;
+            box-shadow: 0 0 20px rgba(255, 200, 0, 0.6);
+        }
+
+        .main-container {
+            max-width: 1250px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* HEAVY METALLIC CONTROLS CARD */
+        .controls-card {
+            background: var(--bg-card);
+            border: 1px solid var(--stark-gold-dark);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 4px 20px rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+            position: relative;
+        }
+
+        .controls-card::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: 10%; right: 10%; height: 1px;
+            background: var(--stark-gold-metallic);
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 0.65rem 0.8rem;
+            background: rgba(6, 9, 15, 0.95);
+            border: 1px solid var(--border-tech);
+            border-radius: 4px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--stark-gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+
+        select option {
+            background: #0b0e14;
+            color: var(--text-light);
+        }
+
+        /* METALLIC ARMATURE BUTTONS */
+        button.btn-primary {
+            background: var(--stark-crimson-plate);
+            color: var(--text-light);
+            border: 1px solid var(--stark-gold);
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 0 12px rgba(196, 18, 32, 0.6);
+        }
+
+        button.btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e62232 0%, #9e000c 50%, #ff4d5e 100%);
+            box-shadow: 0 0 20px rgba(255, 51, 68, 0.7), 0 0 10px var(--stark-gold);
+        }
+
+        button.btn-primary:disabled {
+            background: #2a303c;
+            border-color: #4a5568;
+            color: #718096;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        button.btn-danger {
+            background: rgba(255, 51, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button.btn-danger:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        button.btn-secondary {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--arc-cyan);
+            border: 1px solid var(--arc-cyan);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button.btn-secondary:hover {
+            background: var(--arc-cyan);
+            color: #000;
+        }
+
+        /* ARMORED CARDS LAYOUT */
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-tech);
+            border-radius: 8px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: var(--stark-gold-metallic);
+        }
+
+        .card:hover {
+            border-color: var(--stark-gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .badge {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .badge-tech { background: rgba(0, 240, 255, 0.15); color: var(--arc-cyan); border-color: var(--arc-cyan); }
+        .badge-cult { background: rgba(255, 215, 0, 0.15); color: var(--stark-gold); border-color: var(--stark-gold); }
+        .badge-spor { background: rgba(0, 255, 136, 0.15); color: var(--success); border-color: var(--success); }
+
+        .card-details {
+            margin: 0.8rem 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .card-details p strong { color: var(--text-light); }
+
+        .seat-pill {
+            display: inline-block;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--arc-cyan);
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid var(--border-tech);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 0.8rem;
+        }
+        .seat-pill.full {
+            color: var(--danger);
+            background: rgba(255, 51, 68, 0.1);
+            border-color: var(--danger);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Sub-events Grid Selector */
+        .sub-events-wrapper {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: rgba(255, 215, 0, 0.04);
+            border: 1px dashed var(--border-gold);
+            border-radius: 6px;
+        }
+
+        .sub-events-title {
+            color: var(--stark-gold);
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 0.6rem;
+        }
+
+        .sub-events-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .sub-event-option {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(18, 22, 32, 0.9);
+            border: 1px solid var(--border-tech);
+            padding: 0.4rem 0.7rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+        }
+
+        .sub-event-option:hover {
+            border-color: var(--stark-gold);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        }
+
+        .sub-event-option input[type="radio"] {
+            width: auto;
+            accent-color: var(--stark-gold);
+            cursor: pointer;
+        }
+
+        /* Responsive Table */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-gold);
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: rgba(122, 0, 0, 0.6);
+            color: var(--stark-gold);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-tech);
+            border-left: 4px solid var(--stark-gold);
+        }
+
+        .stat-card h4 {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .stat-card div {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--stark-gold);
+            margin-top: 0.3rem;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 5, 8, 0.9);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: #0b0f17;
+            border: 2px solid var(--stark-gold);
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid var(--border-gold);
+            padding-bottom: 0.5rem;
+        }
+
+        .modal-header h3 {
+            color: var(--stark-gold);
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+        }
+
+        .close-btn {
+            width: auto;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--stark-gold);
+            letter-spacing: 1px;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .section-title {
+            color: var(--stark-gold);
+            font-size: 1.1rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--stark-gold);
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: stretch; }
+            .brand-armature { justify-content: center; }
+            .nav-tabs { width: 100%; justify-content: space-between; }
+            .tab-btn { flex: 1; text-align: center; padding: 0.6rem 0.2rem; font-size: 0.75rem; }
+            .controls-card { grid-template-columns: 1fr; }
+        }
+
+
+
+        
+        /* Interactive cursor */
+.brand-armature {
+    cursor: pointer;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Mouseover state */
+.brand-armature.armature-hovered {
+    transform: translateY(-2px);
+    border-color: #00f0ff;
+    box-shadow: 
+        inset 0 0 20px rgba(0, 240, 255, 0.25),
+        0 0 25px rgba(0, 240, 255, 0.4);
+}
+
+.brand-armature.armature-hovered .arc-reactor {
+    border-color: #ffffff;
+    box-shadow: 0 0 20px #00f0ff, inset 0 0 15px #00f0ff;
+}
+
+/* Click animation pulse */
+@keyframes reactor-burst {
+    0% { transform: scale(1); box-shadow: 0 0 10px #00f0ff; }
+    50% { transform: scale(1.3); box-shadow: 0 0 35px #ffffff, 0 0 20px #00f0ff; }
+    100% { transform: scale(1); box-shadow: 0 0 10px #00f0ff; }
+}
+
+.arc-reactor.reactor-pulse {
+    animation: reactor-burst 0.6s ease-in-out;
+}
+
+    </style>
+</head>
+<body>
+
+    <!-- HEAVY ARMATURE IRON MAN HEADER -->
+    <header>
+        <div class="brand-armature">
+            <span class="armature-rivet rivet-tl"></span>
+            <span class="armature-rivet rivet-tr"></span>
+            <span class="armature-rivet rivet-bl"></span>
+            <span class="armature-rivet rivet-br"></span>
+
+            <div class="armature-shield-outer">
+                <div class="armature-shield-crimson">
+                    <div class="shield-plate-inner">
+                        <div class="arc-reactor"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-text">
+                <h1>STARK <span class="gold-text">EVENTS</span></h1>
+                <div class="hud-tag">
+                    <span class="hud-tag-dot"></span> HEAVY ARMATURE HUD // ONLINE
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('events', event)">Event Matrix</button>
+            <button class="tab-btn" onclick="switchTab('my-registrations', event)">My Access</button>
+            <button class="tab-btn" id="admin-tab-btn" onclick="switchTab('admin', event)">Admin HUD</button>
+        </nav>
+    </header>
+
+    <div class="main-container">
+
+        <!-- MODULE 1 & 2: EVENT DISCOVERY, SEARCH, FILTER & SORT -->
+        <section id="events" class="view-section active">
+            <div class="controls-card">
+                <input type="text" id="search-input" placeholder="Search event or venue..." oninput="renderEvents()">
+                <select id="category-filter" onchange="renderEvents()">
+                    <option value="All">All Sectors</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Sports">Sports</option>
+                </select>
+                <input type="date" id="date-filter" onchange="renderEvents()">
+                <select id="sort-by" onchange="renderEvents()">
+                    <option value="default">Sort Options</option>
+                    <option value="fee-asc">Fee (Low to High)</option>
+                    <option value="date-asc">Chronological</option>
+                    <option value="seats-desc">Available Clearance</option>
+                </select>
+            </div>
+
+            <div class="event-grid" id="events-container"></div>
+        </section>
+
+        <!-- MODULE 5: MY REGISTRATIONS DASHBOARD -->
+        <section id="my-registrations" class="view-section">
+            <div class="controls-card">
+                <input type="text" id="my-reg-search" placeholder="Search Reg ID, Student, Event..." oninput="renderMyRegistrations()">
+                <select id="my-reg-category" onchange="renderMyRegistrations()">
+                    <option value="All">All Categories</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Sports">Sports</option>
+                </select>
+                <select id="my-reg-status" onchange="renderMyRegistrations()">
+                    <option value="All">All Clearance Status</option>
+                    <option value="Registered">Registered</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pass ID</th>
+                            <th>Agent / Student</th>
+                            <th>Target Event</th>
+                            <th>Chosen Track</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="my-registrations-list"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- MODULE 6: ADMIN DASHBOARD & SYSTEM INTEGRATION -->
+        <section id="admin" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div class="section-title">ADMINISTRATOR CONTROL UNIT</div>
+                <button class="btn-danger" style="width: auto; padding: 0.4rem 0.8rem; font-size:0.8rem;" onclick="logoutAdmin()">LOCK ADMIN HUD</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card" style="border-left-color: var(--stark-gold);">
+                    <h4>ACTIVE SECTORS</h4>
+                    <div id="stat-total-events" style="color: var(--stark-gold);">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--arc-cyan);">
+                    <h4>OPEN CLEARANCES</h4>
+                    <div id="stat-total-seats" style="color: var(--arc-cyan);">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--success);">
+                    <h4>REGISTRATIONS</h4>
+                    <div id="stat-registrations" style="color: var(--success);">0</div>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--danger);">
+                    <h4>REVOKED</h4>
+                    <div id="stat-cancelled" style="color: var(--danger);">0</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="color:#fff; font-size:1rem;">Event Database Control</h3>
+                <button class="btn-primary" style="width: auto; padding: 0.5rem 1rem;" onclick="openEventModal()">+ Create Event Protocol</button>
+            </div>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Protocol Name</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Venue</th>
+                            <th>Fee (₹)</th>
+                            <th>Available Tracks</th>
+                            <th>Clearance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-events-list"></tbody>
+                </table>
+            </div>
+
+            <div class="section-title" style="margin-top: 1.5rem;">Access Management Protocol</div>
+            <div class="controls-card" style="margin-top: 0.5rem;">
+                <input type="text" id="admin-reg-search" placeholder="Filter Access Log..." oninput="renderAdminRegistrations()">
+            </div>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pass ID</th>
+                            <th>Student ID</th>
+                            <th>Event</th>
+                            <th>Selected Option</th>
+                            <th>Status</th>
+                            <th>Override</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-registrations-list"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- SHOW MORE / EVENT DETAILS POP-UP MODAL WITH SUB-EVENT SELECTION -->
+    <div class="modal" id="details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="det-modal-title">Event Specification Details</h3>
+                <button class="close-btn" onclick="closeModal('details-modal')">&times;</button>
+            </div>
+            <div id="det-modal-body" style="line-height: 1.6; color: var(--text-light); font-size: 0.9rem;">
+                <!-- Dynamic Content -->
+            </div>
+            <div style="margin-top: 1.2rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button class="btn-secondary" style="width: auto;" onclick="closeModal('details-modal')">CLOSE</button>
+                <button id="det-reg-btn" class="btn-primary" style="width: auto;">PROCEED TO REGISTER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN AUTHENTICATION MODAL -->
+    <div class="modal" id="admin-login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>STARK ADMIN SECURITY ACCESS</h3>
+                <button class="close-btn" onclick="closeModal('admin-login-modal')">&times;</button>
+            </div>
+            <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label>Security Key Passcode</label>
+                    <input type="password" id="admin-passcode" placeholder="Enter Security Passcode" required>
+                    <div class="error-msg" id="err-admin-pass">Access Denied: Invalid Security Key (Default Key: STARK100)</div>
+                </div>
+                <button type="submit" class="btn-primary">AUTHENTICATE ACCESS</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- REGISTRATION FORM MODAL -->
+    <div class="modal" id="registration-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="reg-modal-title">Clearance Form</h3>
+                <button class="close-btn" onclick="closeModal('registration-modal')">&times;</button>
+            </div>
+            <form id="reg-form" onsubmit="handleRegistrationSubmit(event)" novalidate>
+                <input type="hidden" id="reg-event-id">
+                <div class="form-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="reg-name" placeholder="Enter full name" required>
+                    <div class="error-msg" id="err-name">Full name is required.</div>
+                </div>
+                <div class="form-group">
+                    <label>Registration Number</label>
+                    <input type="text" id="reg-num" placeholder="e.g. STARK-9021" required>
+                    <div class="error-msg" id="err-num">Valid Registration ID required.</div>
+                </div>
+                <div class="form-group">
+                    <label>Comms Link (Email)</label>
+                    <input type="email" id="reg-email" placeholder="agent@stark.com" required>
+                    <div class="error-msg" id="err-email">Valid email format required.</div>
+                </div>
+                <div class="form-group">
+                    <label>Comms Contact (10 Digits)</label>
+                    <input type="tel" id="reg-phone" placeholder="10-digit mobile number" required maxlength="10">
+                    <div class="error-msg" id="err-phone">Must be a 10-digit contact number.</div>
+                </div>
+                <div class="form-group">
+                    <label>Selected Sub-Event / Track Option</label>
+                    <select id="reg-subevent-select" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Required Credits</label>
+                    <input type="text" id="reg-fee" readonly style="opacity: 0.7;">
+                </div>
+                <button type="submit" class="btn-primary">CONFIRM REGISTRATION</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN ADD/EDIT EVENT MODAL -->
+    <div class="modal" id="event-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="event-modal-title">Event Configuration</h3>
+                <button class="close-btn" onclick="closeModal('event-modal')">&times;</button>
+            </div>
+            <form id="event-form" onsubmit="handleEventFormSubmit(event)">
+                <input type="hidden" id="edit-event-id">
+                <div class="form-group">
+                    <label>Protocol Title</label>
+                    <input type="text" id="ev-name" placeholder="e.g. Technical Symposium" required>
+                </div>
+                <div class="form-group">
+                    <label>Sector Category</label>
+                    <select id="ev-category">
+                        <option value="Technical">Technical</option>
+                        <option value="Cultural">Cultural</option>
+                        <option value="Sports">Sports</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Execution Date</label>
+                    <input type="date" id="ev-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Location / Venue</label>
+                    <input type="text" id="ev-venue" required>
+                </div>
+                <div class="form-group">
+                    <label>Access Fee (₹)</label>
+                    <input type="number" id="ev-fee" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Max Seat Capacity</label>
+                    <input type="number" id="ev-seats" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Sub-Events / Tracks (Comma Separated)</label>
+                    <input type="text" id="ev-subevents" placeholder="e.g. Presentation, Debugging, Quiz, Treasure Hunt, Connections" required>
+                </div>
+                <div class="form-group">
+                    <label>Protocol Description / Specifications</label>
+                    <textarea id="ev-description" placeholder="Enter full details about rules, agenda, and guidelines..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">DEPLOY EVENT PROTOCOL</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- REGISTRATION SUMMARY MODAL -->
+    <div class="modal" id="summary-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: var(--success);">ACCESS GRANTED</h3>
+                <button class="close-btn" onclick="closeModal('summary-modal')">&times;</button>
+            </div>
+            <div id="summary-content" style="font-size: 0.9rem; line-height: 1.7; color: var(--text-light);"></div>
+            <button class="btn-primary" style="margin-top: 1.2rem;" onclick="closeModal('summary-modal')">ACKNOWLEDGE</button>
+        </div>
+    </div>
+
+    <script>
+        const INITIAL_EVENTS = [
+            { 
+                id: "EVT101", 
+                name: "National Technical Symposium", 
+                category: "Technical", 
+                date: "2025-05-20", 
+                venue: "Auditorium & Labs", 
+                fee: 150, 
+                seats: 50, 
+                totalSeats: 50,
+                subEvents: ["Paper Presentation", "Debugging", "Tech Quiz", "Treasure Hunt", "Connections"],
+                description: "The flagship Technical Symposium featuring individual and team engineering competitions."
+            },
+            { 
+                id: "EVT102", 
+                name: "Code Fest 4.0", 
+                category: "Technical", 
+                date: "2025-05-22", 
+                venue: "Seminar Hall", 
+                fee: 100, 
+                seats: 40, 
+                totalSeats: 40,
+                subEvents: ["Speed Coding", "Bug Bounty", "Algorithmic Duel", "Web Redesign"],
+                description: "Speed competitive coding challenge covering advanced data structures and algorithm logic."
+            },
+            { 
+                id: "EVT103", 
+                name: "AI & Machine Learning Workshop", 
+                category: "Technical", 
+                date: "2025-05-24", 
+                venue: "Open Air Stage", 
+                fee: 200, 
+                seats: 30, 
+                totalSeats: 30,
+                subEvents: ["LLM Fine-tuning", "Prompt Engineering", "Computer Vision Lab"],
+                description: "Hands-on masterclass on building custom AI models and Jarvis-style automation tools."
+            },
+            { 
+                id: "EVT104", 
+                name: "Grand Cultural Fest", 
+                category: "Cultural", 
+                date: "2025-05-28", 
+                venue: "Main Ground", 
+                fee: 50, 
+                seats: 100, 
+                totalSeats: 100,
+                subEvents: ["Battle of Bands", "Solo Dance", "Adapt Tunes", "Treasure Hunt", "Cine Quiz"],
+                description: "An explosive evening featuring music battles, stage performances, and creative cultural events."
+            },
+            { 
+                id: "EVT105", 
+                name: "Robo Wars Arena", 
+                category: "Technical", 
+                date: "2025-06-01", 
+                venue: "Indoor Stadium", 
+                fee: 250, 
+                seats: 20, 
+                totalSeats: 20,
+                subEvents: ["15kg Combat", "Robo Race", "Line Follower Challenge"],
+                description: "Custom combat robot battles in an armored arena. Weight limit strictly set to 15kg per bot."
+            },
+            { 
+                id: "EVT106", 
+                name: "Annual Sports Meet", 
+                category: "Sports", 
+                date: "2025-06-05", 
+                venue: "Sports Complex", 
+                fee: 0, 
+                seats: 80, 
+                totalSeats: 80,
+                subEvents: ["100m Sprint", "5v5 Football", "Badminton Singles", "Chess Tournament"],
+                description: "Multi-disciplinary athletic tracks, football championship, and indoor games for campus athletes."
+            }
+        ];
+
+        let events = JSON.parse(localStorage.getItem('stark_events')) || INITIAL_EVENTS;
+        let registrations = JSON.parse(localStorage.getItem('stark_registrations')) || [];
+        let isAdminAuthenticated = false;
+        const ADMIN_PASSCODE = "STARK100";
+
+        function saveData() {
+            localStorage.setItem('stark_events', JSON.stringify(events));
+            localStorage.setItem('stark_registrations', JSON.stringify(registrations));
+        }
+
+        function switchTab(tabId, evt) {
+            if (tabId === 'admin' && !isAdminAuthenticated) {
+                openAdminLoginModal();
+                return;
+            }
+            activateTabSection(tabId);
+        }
+
+        function activateTabSection(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            const btnMap = { 'events': 0, 'my-registrations': 1, 'admin': 2 };
+            document.querySelectorAll('.tab-btn')[btnMap[tabId]].classList.add('active');
+
+            if (tabId === 'events') renderEvents();
+            if (tabId === 'my-registrations') renderMyRegistrations();
+            if (tabId === 'admin') renderAdminDashboard();
+        }
+
+        function openAdminLoginModal() {
+            document.getElementById('admin-passcode').value = '';
+            document.getElementById('err-admin-pass').style.display = 'none';
+            document.getElementById('admin-login-modal').classList.add('active');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-passcode').value;
+            if (pass === ADMIN_PASSCODE) {
+                isAdminAuthenticated = true;
+                closeModal('admin-login-modal');
+                activateTabSection('admin');
+            } else {
+                document.getElementById('err-admin-pass').style.display = 'block';
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminAuthenticated = false;
+            activateTabSection('events');
+            alert("ADMIN HUD LOGGED OUT & SYSTEM LOCKED.");
+        }
+
+        function showEventDetails(eventId) {
+            const ev = events.find(e => e.id === eventId);
+            if (!ev) return;
+
+            const subEventsList = ev.subEvents || ["General Track"];
+
+            let subEventsHTML = `
+                <div class="sub-events-wrapper">
+                    <div class="sub-events-title">SELECT INDIVIDUAL EVENT OPTION / TRACK:</div>
+                    <div class="sub-events-grid">
+                        ${subEventsList.map((sub, idx) => `
+                            <label class="sub-event-option">
+                                <input type="radio" name="det-subevent" value="${sub}" ${idx === 0 ? 'checked' : ''}>
+                                <span>${sub}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('det-modal-title').innerText = ev.name;
+            document.getElementById('det-modal-body').innerHTML = `
+                <p style="margin-bottom:0.8rem;">
+                    <span class="badge badge-${ev.category.toLowerCase().slice(0, 4)}">${ev.category}</span>
+                </p>
+                <p style="margin-bottom:0.5rem;"><strong>Protocol ID:</strong> ${ev.id}</p>
+                <p style="margin-bottom:0.5rem;"><strong>Execution Date:</strong> ${ev.date}</p>
+                <p style="margin-bottom:0.5rem;"><strong>Location / Venue:</strong> ${ev.venue}</p>
+                <p style="margin-bottom:0.5rem;"><strong>Access Fee:</strong> ₹${ev.fee}</p>
+                <p style="margin-bottom:0.8rem;"><strong>Clearance Left:</strong> ${ev.seats} / ${ev.totalSeats}</p>
+                
+                ${subEventsHTML}
+
+                <div style="background: rgba(255, 215, 0, 0.05); border-left: 3px solid var(--stark-gold); padding: 0.8rem; margin-top: 1rem;">
+                    <strong style="color:var(--stark-gold); display:block; margin-bottom:0.3rem;">Protocol Overview:</strong>
+                    ${ev.description || "No specific details logged for this event."}
+                </div>
+            `;
+
+            const regBtn = document.getElementById('det-reg-btn');
+            if (ev.seats === 0) {
+                regBtn.disabled = true;
+                regBtn.innerText = "CAPACITY FULL";
+                regBtn.onclick = null;
+            } else {
+                regBtn.disabled = false;
+                regBtn.innerText = "PROCEED TO REGISTER";
+                regBtn.onclick = () => {
+                    const selectedOption = document.querySelector('input[name="det-subevent"]:checked')?.value || subEventsList[0];
+                    closeModal('details-modal');
+                    openRegisterModal(ev.id, selectedOption);
+                };
+            }
+
+            document.getElementById('details-modal').classList.add('active');
+        }
+
+        function renderEvents() {
+            const container = document.getElementById('events-container');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const cat = document.getElementById('category-filter').value;
+            const date = document.getElementById('date-filter').value;
+            const sort = document.getElementById('sort-by').value;
+
+            let filtered = events.filter(e => {
+                const matchesSearch = e.name.toLowerCase().includes(search) || e.venue.toLowerCase().includes(search);
+                const matchesCat = cat === 'All' || e.category === cat;
+                const matchesDate = !date || e.date === date;
+                return matchesSearch && matchesCat && matchesDate;
+            });
+
+            if (sort === 'fee-asc') filtered.sort((a, b) => a.fee - b.fee);
+            if (sort === 'date-asc') filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+            if (sort === 'seats-desc') filtered.sort((a, b) => b.seats - a.seats);
+
+            container.innerHTML = filtered.map(e => `
+                <div class="card">
+                    <div>
+                        <div class="card-header">
+                            <h3>${e.name}</h3>
+                            <span class="badge badge-${e.category.toLowerCase().slice(0, 4)}">${e.category}</span>
+                        </div>
+                        <div class="card-details">
+                            <p><strong>Date:</strong> ${e.date}</p>
+                            <p><strong>Venue:</strong> ${e.venue}</p>
+                            <p><strong>Entry Fee:</strong> ₹${e.fee}</p>
+                            <p><strong>Tracks:</strong> ${(e.subEvents || []).slice(0, 3).join(', ')}${(e.subEvents || []).length > 3 ? '...' : ''}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="seat-pill ${e.seats === 0 ? 'full' : ''}">
+                            ${e.seats === 0 ? 'FULL CAPACITY' : e.seats + ' Seats Left'}
+                        </span>
+                        <div class="card-actions">
+                            <button class="btn-secondary" onclick="showEventDetails('${e.id}')">SHOW MORE</button>
+                            <button class="btn-primary" ${e.seats === 0 ? 'disabled' : ''} onclick="openRegisterModal('${e.id}')">
+                                ${e.seats === 0 ? 'FULL' : 'REGISTER'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openRegisterModal(eventId, preSelectedSubEvent = null) {
+            const ev = events.find(e => e.id === eventId);
+            document.getElementById('reg-event-id').value = ev.id;
+            document.getElementById('reg-modal-title').innerText = `Clearance: ${ev.name}`;
+            document.getElementById('reg-fee').value = `₹${ev.fee}`;
+
+            const selectEl = document.getElementById('reg-subevent-select');
+            const optionsList = ev.subEvents || ["General Track"];
+            selectEl.innerHTML = optionsList.map(opt => `
+                <option value="${opt}" ${preSelectedSubEvent === opt ? 'selected' : ''}>${opt}</option>
+            `).join('');
+
+            document.getElementById('registration-modal').classList.add('active');
+        }
+
+        function handleRegistrationSubmit(e) {
+            e.preventDefault();
+            const eventId = document.getElementById('reg-event-id').value;
+            const name = document.getElementById('reg-name').value.trim();
+            const regNum = document.getElementById('reg-num').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const selectedSubEvent = document.getElementById('reg-subevent-select').value;
+
+            let valid = true;
+            document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+
+            if (!name) { document.getElementById('err-name').style.display = 'block'; valid = false; }
+            if (!regNum) { document.getElementById('err-num').style.display = 'block'; valid = false; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-email').style.display = 'block'; valid = false; }
+            if (!/^\d{10}$/.test(phone)) { document.getElementById('err-phone').style.display = 'block'; valid = false; }
+
+            if (!valid) return;
+
+            const duplicate = registrations.find(r => r.regNum === regNum && r.eventId === eventId && r.subEvent === selectedSubEvent && r.status !== 'Cancelled');
+            if (duplicate) {
+                alert("ACCESS ERROR: Registration already logged for this Agent & Track Option.");
+                return;
+            }
+
+            const ev = events.find(e => e.id === eventId);
+            if (ev.seats <= 0) {
+                alert("ACCESS ERROR: Capacity saturated!");
+                return;
+            }
+
+            ev.seats -= 1;
+
+            const newReg = {
+                regId: "STARK-" + Math.floor(1000 + Math.random() * 9000),
+                eventId: ev.id,
+                eventName: ev.name,
+                category: ev.category,
+                date: ev.date,
+                subEvent: selectedSubEvent,
+                studentName: name,
+                regNum: regNum,
+                email: email,
+                phone: phone,
+                status: "Registered"
+            };
+
+            registrations.push(newReg);
+            saveData();
+            closeModal('registration-modal');
+            document.getElementById('reg-form').reset();
+
+            document.getElementById('summary-content').innerHTML = `
+                <p><strong>Access ID:</strong> <span style="color:var(--stark-gold); font-weight:bold;">${newReg.regId}</span></p>
+                <p><strong>Agent Name:</strong> ${newReg.studentName}</p>
+                <p><strong>Protocol Event:</strong> ${newReg.eventName}</p>
+                <p><strong>Chosen Option:</strong> <span style="color:var(--arc-cyan); font-weight:bold;">${newReg.subEvent}</span></p>
+                <p><strong>Schedule Date:</strong> ${newReg.date}</p>
+                <p><strong>Status:</strong> <span style="color:var(--success); font-weight:bold;">${newReg.status}</span></p>
+            `;
+            document.getElementById('summary-modal').classList.add('active');
+            renderEvents();
+        }
+
+        function renderMyRegistrations() {
+            const list = document.getElementById('my-registrations-list');
+            const search = document.getElementById('my-reg-search').value.toLowerCase();
+            const cat = document.getElementById('my-reg-category').value;
+            const status = document.getElementById('my-reg-status').value;
+
+            let filtered = registrations.filter(r => {
+                const matchesSearch = r.regId.toLowerCase().includes(search) || r.studentName.toLowerCase().includes(search) || r.eventName.toLowerCase().includes(search);
+                const matchesCat = cat === 'All' || r.category === cat;
+                const matchesStatus = status === 'All' || r.status === status;
+                return matchesSearch && matchesCat && matchesStatus;
+            });
+
+            list.innerHTML = filtered.map(r => `
+                <tr>
+                    <td><strong style="color: var(--stark-gold);">${r.regId}</strong></td>
+                    <td>${r.studentName}</td>
+                    <td>${r.eventName}</td>
+                    <td><span style="color:var(--arc-cyan); font-weight:bold;">${r.subEvent || 'General'}</span></td>
+                    <td>${r.date}</td>
+                    <td><span style="color: ${r.status === 'Cancelled' ? 'var(--danger)' : 'var(--success)'}; font-weight: bold;">${r.status}</span></td>
+                    <td>
+                        ${r.status !== 'Cancelled' ? `<button class="btn-danger" style="width:auto; padding:0.3rem 0.6rem; font-size: 0.75rem;" onclick="cancelRegistration('${r.regId}')">REVOKE</button>` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function cancelRegistration(regId) {
+            const reg = registrations.find(r => r.regId === regId);
+            if (reg && reg.status !== 'Cancelled') {
+                reg.status = 'Cancelled';
+                const ev = events.find(e => e.id === reg.eventId);
+                if (ev) ev.seats += 1;
+                saveData();
+                renderMyRegistrations();
+            }
+        }
+
+        function renderAdminDashboard() {
+            document.getElementById('stat-total-events').innerText = events.length;
+            document.getElementById('stat-total-seats').innerText = events.reduce((acc, e) => acc + e.seats, 0);
+            document.getElementById('stat-registrations').innerText = registrations.filter(r => r.status !== 'Cancelled').length;
+            document.getElementById('stat-cancelled').innerText = registrations.filter(r => r.status === 'Cancelled').length;
+
+            const evList = document.getElementById('admin-events-list');
+            evList.innerHTML = events.map(e => `
+                <tr>
+                    <td>${e.id}</td>
+                    <td>${e.name}</td>
+                    <td>${e.category}</td>
+                    <td>${e.date}</td>
+                    <td>${e.venue}</td>
+                    <td>₹${e.fee}</td>
+                    <td>${(e.subEvents || []).join(', ')}</td>
+                    <td>${e.seats} / ${e.totalSeats}</td>
+                    <td style="display:flex; gap:0.3rem;">
+                        <button class="btn-secondary" style="width:auto; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="openEventModal('${e.id}')">EDIT</button>
+                        <button class="btn-danger" style="width:auto; padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="deleteEvent('${e.id}')">DELETE</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            renderAdminRegistrations();
+        }
+
+        function renderAdminRegistrations() {
+            const search = document.getElementById('admin-reg-search').value.toLowerCase();
+            const regList = document.getElementById('admin-registrations-list');
+            
+            let filtered = registrations.filter(r => r.regId.toLowerCase().includes(search) || r.studentName.toLowerCase().includes(search) || r.eventName.toLowerCase().includes(search));
+
+            regList.innerHTML = filtered.map(r => `
+                <tr>
+                    <td>${r.regId}</td>
+                    <td>${r.studentName} (${r.regNum})</td>
+                    <td>${r.eventName}</td>
+                    <td>${r.subEvent || 'General'}</td>
+                    <td>${r.status}</td>
+                    <td>
+                        <select style="width:auto; padding:0.2rem;" onchange="updateRegStatus('${r.regId}', this.value)">
+                            <option value="Registered" ${r.status === 'Registered' ? 'selected' : ''}>Registered</option>
+                            <option value="Confirmed" ${r.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="Cancelled" ${r.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateRegStatus(regId, newStatus) {
+            const reg = registrations.find(r => r.regId === regId);
+            const oldStatus = reg.status;
+            reg.status = newStatus;
+
+            const ev = events.find(e => e.id === reg.eventId);
+            if (ev) {
+                if (oldStatus !== 'Cancelled' && newStatus === 'Cancelled') ev.seats += 1;
+                if (oldStatus === 'Cancelled' && newStatus !== 'Cancelled') ev.seats = Math.max(0, ev.seats - 1);
+            }
+            saveData();
+            renderAdminDashboard();
+        }
+
+        function openEventModal(eventId = null) {
+            document.getElementById('event-form').reset();
+            if (eventId) {
+                const ev = events.find(e => e.id === eventId);
+                document.getElementById('edit-event-id').value = ev.id;
+                document.getElementById('ev-name').value = ev.name;
+                document.getElementById('ev-category').value = ev.category;
+                document.getElementById('ev-date').value = ev.date;
+                document.getElementById('ev-venue').value = ev.venue;
+                document.getElementById('ev-fee').value = ev.fee;
+                document.getElementById('ev-seats').value = ev.totalSeats;
+                document.getElementById('ev-subevents').value = (ev.subEvents || []).join(', ');
+                document.getElementById('ev-description').value = ev.description || '';
+                document.getElementById('event-modal-title').innerText = "Edit Event Protocol";
+            } else {
+                document.getElementById('edit-event-id').value = '';
+                document.getElementById('event-modal-title').innerText = "Deploy New Event Protocol";
+            }
+            document.getElementById('event-modal').classList.add('active');
+        }
+
+        function handleEventFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-event-id').value;
+            const name = document.getElementById('ev-name').value;
+            const category = document.getElementById('ev-category').value;
+            const date = document.getElementById('ev-date').value;
+            const venue = document.getElementById('ev-venue').value;
+            const fee = Number(document.getElementById('ev-fee').value);
+            const totalSeats = Number(document.getElementById('ev-seats').value);
+            const rawSubEvents = document.getElementById('ev-subevents').value;
+            const description = document.getElementById('ev-description').value;
+
+            const subEvents = rawSubEvents.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+            if (id) {
+                const ev = events.find(e => e.id === id);
+                const diff = totalSeats - ev.totalSeats;
+                ev.name = name; 
+                ev.category = category; 
+                ev.date = date; 
+                ev.venue = venue; 
+                ev.fee = fee;
+                ev.totalSeats = totalSeats;
+                ev.seats = Math.max(0, ev.seats + diff);
+                ev.subEvents = subEvents;
+                ev.description = description;
+            } else {
+                events.push({
+                    id: "EVT" + (events.length + 101),
+                    name, category, date, venue, fee, totalSeats, seats: totalSeats, subEvents, description
+                });
+            }
+            saveData();
+            closeModal('event-modal');
+            renderAdminDashboard();
+        }
+
+        function deleteEvent(id) {
+            if (confirm("CONFIRMATION REQUIRED: Delete this event protocol?")) {
+                events = events.filter(e => e.id !== id);
+                saveData();
+                renderAdminDashboard();
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        renderEvents();
+
+        
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+    // Select the target brand element and HUD status text
+    const brandChassis = document.querySelector('.brand-armature');
+    const hudStatusText = document.querySelector('.hud-tag');
+    const arcReactor = document.querySelector('.arc-reactor');
+
+    // Default status HTML to restore on mouseout
+    const defaultHudContent = `<span class="hud-tag-dot"></span> HEAVY ARMATURE HUD // ONLINE`;
+
+    // EVENT 1: MOUSEOVER — Power-up reactor and update HUD diagnostic status
+    brandChassis.addEventListener('mouseover', () => {
+        brandChassis.classList.add('armature-hovered');
+        hudStatusText.innerHTML = `<span class="hud-tag-dot" style="background:#00f0ff; box-shadow:0 0 8px #00f0ff;"></span> ARC CORE _//_ OVERDRIVE READY`;
+    });
+
+    // EVENT 2: MOUSEOUT — Revert to nominal operating state
+    brandChassis.addEventListener('mouseout', () => {
+        brandChassis.classList.remove('armature-hovered');
+        hudStatusText.innerHTML = defaultHudContent;
+    });
+
+    // EVENT 3: CLICK — Trigger energy surge animation and diagnostic feedback
+    brandChassis.addEventListener('click', () => {
+        // Trigger temporary reactor overload pulse
+        arcReactor.classList.add('reactor-pulse');
+        hudStatusText.innerHTML = `<span class="hud-tag-dot" style="background:#ff3344; box-shadow:0 0 8px #ff3344;"></span> DIAGNOSTIC SCAN COMPLETE`;
+
+        setTimeout(() => {
+            arcReactor.classList.remove('reactor-pulse');
+        }, 600);
+    });
+});
+    </script>
+</body>
+</html>
