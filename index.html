@@ -700,6 +700,69 @@
     animation: reactor-burst 0.6s ease-in-out;
 }
 
+
+
+
+/* PAYMENT GATEWAY UI STYLES */
+.pay-summary-box {
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid var(--border-tech);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.85rem;
+}
+
+.pay-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+}
+
+.pay-method-card {
+    background: rgba(6, 9, 15, 0.95);
+    border: 1px solid var(--border-tech);
+    padding: 0.6rem 0.3rem;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+.pay-method-card input[type="radio"] {
+    display: none;
+}
+
+.pay-method-card:hover, .pay-method-card.active {
+    border-color: var(--stark-gold);
+    color: var(--stark-gold);
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+/* ROTATING REACTOR SPINNER FOR PAYMENT PROCESSING */
+.reactor-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(0, 240, 255, 0.2);
+    border-top: 3px solid var(--arc-cyan);
+    border-radius: 50%;
+    margin: 0 auto 0.6rem auto;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
 </head>
 <body>
@@ -897,21 +960,21 @@
                 <div class="form-group">
                     <label>Security Key Passcode</label>
                     <input type="password" id="admin-passcode" placeholder="Enter Security Passcode" required>
-                    <div class="error-msg" id="err-admin-pass">Access Denied: Invalid Security Key (Default Key: STARK100)</div>
+                    <div class="error-msg" id="err-admin-pass">Access Denied: Invalid Security Key</div>
                 </div>
                 <button type="submit" class="btn-primary">AUTHENTICATE ACCESS</button>
             </form>
         </div>
     </div>
 
-    <!-- REGISTRATION FORM MODAL -->
+<!-- 1. REGISTRATION FORM MODAL (STEP 1) -->
     <div class="modal" id="registration-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="reg-modal-title">Clearance Form</h3>
                 <button class="close-btn" onclick="closeModal('registration-modal')">&times;</button>
             </div>
-            <form id="reg-form" onsubmit="handleRegistrationSubmit(event)" novalidate>
+            <form id="reg-form" onsubmit="goToPaymentStep(event)" novalidate>
                 <input type="hidden" id="reg-event-id">
                 <div class="form-group">
                     <label>Agent Name</label>
@@ -938,11 +1001,80 @@
                     <select id="reg-subevent-select" required></select>
                 </div>
                 <div class="form-group">
-                    <label>Required Credits</label>
-                    <input type="text" id="reg-fee" readonly style="opacity: 0.7;">
+                    <label>Required Clearance Fee</label>
+                    <input type="text" id="reg-fee" readonly style="opacity: 0.85; color: var(--stark-gold); font-weight: bold;">
                 </div>
-                <button type="submit" class="btn-primary">CONFIRM REGISTRATION</button>
+                <button type="submit" class="btn-primary">PROCEED TO PAYMENT →</button>
             </form>
+        </div>
+    </div>
+
+    <!-- 2. STARK FINANCIAL PAYMENT GATEWAY MODAL (STEP 2) -->
+    <div class="modal" id="payment-modal">
+        <div class="modal-content" style="border-color: var(--arc-cyan); box-shadow: 0 0 35px rgba(0, 240, 255, 0.3);">
+            <div class="modal-header">
+                <h3 style="color: var(--arc-cyan);">SECURE FINANCIAL GATEWAY</h3>
+                <button class="close-btn" onclick="closeModal('payment-modal')">&times;</button>
+            </div>
+            
+            <!-- Summary Card -->
+            <div class="pay-summary-box">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+                    <span style="color: var(--text-muted);">Protocol Target:</span>
+                    <strong id="pay-summary-event" style="color: #fff;">-</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+                    <span style="color: var(--text-muted);">Track Option:</span>
+                    <strong id="pay-summary-track" style="color: var(--arc-cyan);">-</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-tech); padding-top: 0.5rem; margin-top: 0.5rem;">
+                    <span style="color: var(--stark-gold); font-weight: bold;">TOTAL DUE:</span>
+                    <strong id="pay-summary-amount" style="color: var(--stark-gold); font-size: 1.2rem;">₹0</strong>
+                </div>
+            </div>
+
+            <!-- Payment Method Selector -->
+            <div class="form-group">
+                <label>Select Payment Mode</label>
+                <div class="pay-methods-grid">
+                    <label class="pay-method-card active" onclick="selectPayMethod('upi', this)">
+                        <input type="radio" name="pay-method" value="UPI" checked>
+                        <span>UPI / QR</span>
+                    </label>
+                    <label class="pay-method-card" onclick="selectPayMethod('card', this)">
+                        <input type="radio" name="pay-method" value="Card">
+                        <span>Card</span>
+                    </label>
+                    <label class="pay-method-card" onclick="selectPayMethod('netbank', this)">
+                        <input type="radio" name="pay-method" value="NetBanking">
+                        <span>NetBank</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dynamic Payment Inputs -->
+            <div id="pay-input-container">
+                <div class="form-group" id="pay-field-upi">
+                    <label>UPI ID (VPA)</label>
+                    <input type="text" id="pay-upi-id" placeholder="username@upi / mobilenumber@paytm">
+                </div>
+                <div class="form-group" id="pay-field-card" style="display:none;">
+                    <label>Card Number</label>
+                    <input type="text" id="pay-card-num" placeholder="4532 •••• •••• 8892" maxlength="16">
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <input type="text" id="pay-card-exp" placeholder="MM/YY" maxlength="5">
+                        <input type="password" id="pay-card-cvv" placeholder="CVV" maxlength="3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Loader Indicator -->
+            <div id="pay-processing-status" style="display: none; text-align: center; margin: 1rem 0; color: var(--arc-cyan); font-weight: bold; font-size: 0.85rem;">
+                <div class="reactor-spinner"></div>
+                CONNECTING TO STARK FINANCIAL NETWORK...
+            </div>
+
+            <button type="button" id="pay-submit-btn" class="btn-primary" onclick="executePaymentProcess()">AUTHORIZE & PAY NOW</button>
         </div>
     </div>
 
@@ -1324,32 +1456,38 @@
         }
 
         function renderMyRegistrations() {
-            const list = document.getElementById('my-registrations-list');
-            const search = document.getElementById('my-reg-search').value.toLowerCase();
-            const cat = document.getElementById('my-reg-category').value;
-            const status = document.getElementById('my-reg-status').value;
+    const list = document.getElementById('my-registrations-list');
+    const search = document.getElementById('my-reg-search').value.toLowerCase();
+    const cat = document.getElementById('my-reg-category').value;
+    const status = document.getElementById('my-reg-status').value;
 
-            let filtered = registrations.filter(r => {
-                const matchesSearch = r.regId.toLowerCase().includes(search) || r.studentName.toLowerCase().includes(search) || r.eventName.toLowerCase().includes(search);
-                const matchesCat = cat === 'All' || r.category === cat;
-                const matchesStatus = status === 'All' || r.status === status;
-                return matchesSearch && matchesCat && matchesStatus;
-            });
+    let filtered = registrations.filter(r => {
+        const matchesSearch = r.regId.toLowerCase().includes(search) || 
+                              (r.transactionId && r.transactionId.toLowerCase().includes(search)) ||
+                              r.studentName.toLowerCase().includes(search) || 
+                              r.eventName.toLowerCase().includes(search);
+        const matchesCat = cat === 'All' || r.category === cat;
+        const matchesStatus = status === 'All' || r.status === status;
+        return matchesSearch && matchesCat && matchesStatus;
+    });
 
-            list.innerHTML = filtered.map(r => `
-                <tr>
-                    <td><strong style="color: var(--stark-gold);">${r.regId}</strong></td>
-                    <td>${r.studentName}</td>
-                    <td>${r.eventName}</td>
-                    <td><span style="color:var(--arc-cyan); font-weight:bold;">${r.subEvent || 'General'}</span></td>
-                    <td>${r.date}</td>
-                    <td><span style="color: ${r.status === 'Cancelled' ? 'var(--danger)' : 'var(--success)'}; font-weight: bold;">${r.status}</span></td>
-                    <td>
-                        ${r.status !== 'Cancelled' ? `<button class="btn-danger" style="width:auto; padding:0.3rem 0.6rem; font-size: 0.75rem;" onclick="cancelRegistration('${r.regId}')">REVOKE</button>` : '-'}
-                    </td>
-                </tr>
-            `).join('');
-        }
+    list.innerHTML = filtered.map(r => `
+        <tr>
+            <td>
+                <strong style="color: var(--stark-gold);">${r.regId}</strong><br>
+                <small style="color: var(--arc-cyan); font-size: 0.7rem;">${r.transactionId || 'N/A'}</small>
+            </td>
+            <td>${r.studentName}</td>
+            <td>${r.eventName}</td>
+            <td><span style="color:var(--arc-cyan); font-weight:bold;">${r.subEvent || 'General'}</span></td>
+            <td>₹${r.amountPaid !== undefined ? r.amountPaid : 0}</td>
+            <td><span style="color: var(--success); font-weight: bold;">${r.paymentStatus || 'Paid'}</span></td>
+            <td>
+                ${r.status !== 'Cancelled' ? `<button class="btn-danger" style="width:auto; padding:0.3rem 0.6rem; font-size: 0.75rem;" onclick="cancelRegistration('${r.regId}')">REVOKE</button>` : '-'}
+            </td>
+        </tr>
+    `).join('');
+}
 
         function cancelRegistration(regId) {
             const reg = registrations.find(r => r.regId === regId);
@@ -1534,6 +1672,154 @@
         }, 600);
     });
 });
+
+
+
+
+// TEMPORARY STORAGE FOR REGISTRATION IN PROGRESS
+let pendingRegistrationData = null;
+
+// STEP 1: VALIDATE FORM & MOVE TO PAYMENT MODAL
+function goToPaymentStep(e) {
+    e.preventDefault();
+    const eventId = document.getElementById('reg-event-id').value;
+    const name = document.getElementById('reg-name').value.trim();
+    const regNum = document.getElementById('reg-num').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const selectedSubEvent = document.getElementById('reg-subevent-select').value;
+
+    let valid = true;
+    document.querySelectorAll('#registration-modal .error-msg').forEach(el => el.style.display = 'none');
+
+    if (!name) { document.getElementById('err-name').style.display = 'block'; valid = false; }
+    if (!regNum) { document.getElementById('err-num').style.display = 'block'; valid = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-email').style.display = 'block'; valid = false; }
+    if (!/^\d{10}$/.test(phone)) { document.getElementById('err-phone').style.display = 'block'; valid = false; }
+
+    if (!valid) return;
+
+    // Check duplicate active registration
+    const duplicate = registrations.find(r => r.regNum === regNum && r.eventId === eventId && r.subEvent === selectedSubEvent && r.status !== 'Cancelled');
+    if (duplicate) {
+        alert("ACCESS ERROR: Registration already logged for this Agent & Track Option.");
+        return;
+    }
+
+    const ev = events.find(e => e.id === eventId);
+    if (ev.seats <= 0) {
+        alert("ACCESS ERROR: Capacity saturated!");
+        return;
+    }
+
+    // Save temporarily
+    pendingRegistrationData = {
+        eventId: ev.id,
+        eventName: ev.name,
+        category: ev.category,
+        date: ev.date,
+        subEvent: selectedSubEvent,
+        studentName: name,
+        regNum: regNum,
+        email: email,
+        phone: phone,
+        fee: ev.fee
+    };
+
+    // Close Step 1 Modal and Open Payment Gateway Modal
+    closeModal('registration-modal');
+    openPaymentModal(pendingRegistrationData);
+}
+
+// STEP 2: OPEN PAYMENT GATEWAY MODAL
+function openPaymentModal(data) {
+    document.getElementById('pay-summary-event').innerText = data.eventName;
+    document.getElementById('pay-summary-track').innerText = data.subEvent;
+    document.getElementById('pay-summary-amount').innerText = `₹${data.fee}`;
+
+    // Auto Bypass Payment if Free
+    const submitBtn = document.getElementById('pay-submit-btn');
+    if (data.fee === 0) {
+        submitBtn.innerText = "CLAIM FREE ACCESS PASS";
+        document.getElementById('pay-input-container').style.display = 'none';
+    } else {
+        submitBtn.innerText = `AUTHORIZE & PAY ₹${data.fee}`;
+        document.getElementById('pay-input-container').style.display = 'block';
+    }
+
+    document.getElementById('pay-processing-status').style.display = 'none';
+    submitBtn.disabled = false;
+    document.getElementById('payment-modal').classList.add('active');
+}
+
+// TOGGLE PAYMENT METHOD TABS
+function selectPayMethod(type, element) {
+    document.querySelectorAll('.pay-method-card').forEach(c => c.classList.remove('active'));
+    element.classList.add('active');
+    element.querySelector('input').checked = true;
+
+    document.getElementById('pay-field-upi').style.display = type === 'upi' ? 'block' : 'none';
+    document.getElementById('pay-field-card').style.display = type === 'card' ? 'block' : 'none';
+}
+
+// STEP 3: PROCESS PAYMENT & COMPLETE REGISTRATION
+function executePaymentProcess() {
+    if (!pendingRegistrationData) return;
+
+    const selectedMethod = document.querySelector('input[name="pay-method"]:checked')?.value || 'Free Pass';
+    const submitBtn = document.getElementById('pay-submit-btn');
+    const statusBox = document.getElementById('pay-processing-status');
+
+    // UI Loading state
+    submitBtn.disabled = true;
+    statusBox.style.display = 'block';
+
+    setTimeout(() => {
+        const ev = events.find(e => e.id === pendingRegistrationData.eventId);
+        if (ev.seats <= 0) {
+            alert("TRANSACTION FAILED: Seats filled up during payment process.");
+            closeModal('payment-modal');
+            return;
+        }
+
+        // Deduct Seat Capacity
+        ev.seats -= 1;
+
+        // Generate Transaction ID & Finalize Registration
+        const txnId = "TXN-" + Math.floor(100000 + Math.random() * 900000);
+        const finalRegistration = {
+            regId: "STARK-" + Math.floor(1000 + Math.random() * 9000),
+            transactionId: pendingRegistrationData.fee > 0 ? txnId : "FREE-PASS",
+            paymentMethod: selectedMethod,
+            paymentStatus: "Paid",
+            amountPaid: pendingRegistrationData.fee,
+            ...pendingRegistrationData,
+            status: "Registered"
+        };
+
+        registrations.push(finalRegistration);
+        saveData();
+
+        // Reset and Close
+        closeModal('payment-modal');
+        document.getElementById('reg-form').reset();
+        pendingRegistrationData = null;
+
+        // Display Success Summary
+        document.getElementById('summary-content').innerHTML = `
+            <p><strong>Access Pass ID:</strong> <span style="color:var(--stark-gold); font-weight:bold;">${finalRegistration.regId}</span></p>
+            <p><strong>Transaction Reference:</strong> <span style="color:var(--arc-cyan); font-weight:bold;">${finalRegistration.transactionId}</span></p>
+            <p><strong>Payment Status:</strong> <span style="color:var(--success); font-weight:bold;">${finalRegistration.paymentStatus} (${finalRegistration.paymentMethod})</span></p>
+            <p><strong>Agent Name:</strong> ${finalRegistration.studentName}</p>
+            <p><strong>Protocol Event:</strong> ${finalRegistration.eventName}</p>
+            <p><strong>Chosen Option:</strong> ${finalRegistration.subEvent}</p>
+            <p><strong>Schedule Date:</strong> ${finalRegistration.date}</p>
+        `;
+        document.getElementById('summary-modal').classList.add('active');
+        renderEvents();
+    }, 1200); // 1.2s simulation delay for realism
+}
+
     </script>
 </body>
 </html>
